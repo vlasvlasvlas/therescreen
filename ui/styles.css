@@ -39,6 +39,78 @@ body {
   transition: opacity 90ms linear, background-color 90ms linear;
 }
 
+.pianoRoll {
+  position: fixed;
+  left: 18px;
+  right: 18px;
+  bottom: 14px;
+  height: 112px;
+  z-index: 22;
+  pointer-events: none;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 120ms linear, visibility 120ms linear;
+}
+
+.pianoRoll.hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.pianoKeys {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.pKey {
+  position: absolute;
+  bottom: 0;
+  box-sizing: border-box;
+}
+
+.pKey.white {
+  height: 100%;
+  border-right: 1px solid rgba(0, 0, 0, 0.36);
+  background: rgba(245, 248, 255, 0.88);
+}
+
+.pKey.black {
+  height: 62%;
+  z-index: 2;
+  border-radius: 0 0 4px 4px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(12, 16, 24, 0.95);
+}
+
+.pKey.white.active {
+  background: rgba(112, 201, 255, 0.95);
+}
+
+.pKey.black.active {
+  background: rgba(77, 163, 240, 0.98);
+}
+
+.pianoNeedle {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 2px;
+  margin-left: -1px;
+  background: rgba(255, 236, 128, 0.96);
+  box-shadow: 0 0 8px rgba(255, 236, 128, 0.7);
+  z-index: 3;
+  transition: left 50ms ease-out, opacity 120ms linear;
+}
+
+.pianoNeedle.stale {
+  opacity: 0.35;
+}
+
 .pitchOverlay {
   position: fixed;
   left: 50%;
@@ -58,6 +130,10 @@ body {
 .pitchOverlay.hidden {
   opacity: 0;
   visibility: hidden;
+}
+
+.pitchOverlay.withPiano {
+  bottom: 136px;
 }
 
 .bootSplash {
@@ -126,20 +202,40 @@ body {
 
 .modalCard {
   width: min(560px, calc(100% - 28px));
+  max-height: min(84vh, 780px);
   background: var(--panel);
   border: 1px solid var(--panel-border);
   border-radius: 16px;
   padding: 18px;
+  overflow-y: auto;
 }
 
 .modalCard h2 {
   margin: 0 0 10px;
 }
 
+.modalCard h3 {
+  margin: 10px 0 6px;
+  font-size: 14px;
+  color: #e8eef8;
+  letter-spacing: 0.02em;
+}
+
 .modalCard p {
   margin: 0 0 10px;
   color: #ccd6e6;
   line-height: 1.4;
+}
+
+.modalCard ul {
+  margin: 0 0 10px;
+  padding-left: 18px;
+}
+
+.modalCard li {
+  margin: 0 0 6px;
+  color: #ccd6e6;
+  line-height: 1.35;
 }
 
 .modalCard a {
@@ -264,10 +360,43 @@ label {
   width: 100%;
 }
 
+.modeBtn {
+  margin-top: 2px;
+}
+
 .toggleRow {
   display: flex;
   gap: 9px;
   align-items: center;
+}
+
+.audioRow {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  align-items: center;
+}
+
+.audioSliderLabel {
+  margin-bottom: 0;
+}
+
+.muteBtn {
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  color: #dbe4f1;
+  padding: 8px 11px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  min-width: 74px;
+}
+
+.muteBtn.active {
+  border-color: rgba(255, 150, 150, 0.85);
+  background: rgba(255, 90, 90, 0.2);
+  color: #ffd6d6;
 }
 
 input[type="range"],
@@ -292,6 +421,50 @@ input[type="range"] {
   font-size: 11px;
   color: var(--muted);
   line-height: 1.35;
+}
+
+.advancedSound {
+  display: none;
+}
+
+.advancedSound.open {
+  display: block;
+}
+
+.gizmoContainer {
+  position: fixed;
+  left: 50%;
+  top: 53%;
+  transform: translate(-50%, -50%);
+  width: min(430px, 82vw);
+  z-index: 10;
+  pointer-events: none;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 200ms ease, visibility 200ms ease;
+  filter: drop-shadow(0 15px 30px rgba(0,0,0,0.6));
+}
+
+.gizmoImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: transform 0.05s linear;
+  transform-origin: center 78%;
+}
+
+.gizmoImage #gizmoHead,
+.gizmoImage #gizmoEyelids,
+.gizmoImage #gizmoPupils,
+.gizmoImage #gizmoMouth {
+  transition: transform 0.05s linear;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.gizmoContainer.hidden {
+  opacity: 0;
+  visibility: hidden;
 }
 
 @media (max-width: 720px) {

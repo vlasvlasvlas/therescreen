@@ -1,8 +1,0 @@
-2026-04-02 11:39:18 INFO [MainThread] Logging to /Users/vladimirobellini/Documents/REPOS/therescreen/therescreen.log (level=INFO)
-2026-04-02 11:39:18 INFO [MainThread] Starting therescreen
-2026-04-02 11:39:18 INFO [MainThread] Loaded 3 synth presets from /Users/vladimirobellini/Documents/REPOS/therescreen/synth_presets.yaml
-2026-04-02 11:39:18 INFO [MainThread] Active synth preset: classic_theremin
-2026-04-02 11:39:18 INFO [MainThread] UI: http://127.0.0.1:8765
-2026-04-02 11:39:18 INFO [MainThread] Press Ctrl+C to stop
-2026-04-02 11:39:18 INFO [MainThread] Tip: run with sudo if lid/ambient commands fail due permissions
-2026-04-02 11:40:51 INFO [Thread-609] Loaded 3 synth presets from /Users/vladimirobellini/Documents/REPOS/therescreen/synth_presets.yaml

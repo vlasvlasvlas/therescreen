@@ -1,0 +1,12 @@
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Local runtime state
+therescreen.log
+therescreen_config.json
+.therescreen.pid
+.therescreen.port
+
+# macOS
+.DS_Store

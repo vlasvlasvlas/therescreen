@@ -5,6 +5,8 @@ classic_theremin:
   waveform: sine
   minHz: 130.81
   maxHz: 1760.0
+  anchorAt90Enabled: false
+  freqAt90Hz: 880.0
   lowVolume: 0.03
   highVolume: 0.66
   attackMs: 8.0
@@ -25,6 +27,8 @@ space_voice:
   waveform: triangle
   minHz: 98.0
   maxHz: 1480.0
+  anchorAt90Enabled: false
+  freqAt90Hz: 740.0
   lowVolume: 0.02
   highVolume: 0.72
   attackMs: 12.0
@@ -45,6 +49,8 @@ glass_lead:
   waveform: saw
   minHz: 164.81
   maxHz: 2637.0
+  anchorAt90Enabled: false
+  freqAt90Hz: 1174.66
   lowVolume: 0.01
   highVolume: 0.58
   attackMs: 4.0

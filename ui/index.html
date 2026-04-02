@@ -9,28 +9,177 @@
 <body>
   <div id="blackBase"></div>
   <div id="colorOverlay"></div>
+  <div id="pianoRoll" class="pianoRoll hidden">
+    <div id="pianoKeys" class="pianoKeys"></div>
+    <div id="pianoNeedle" class="pianoNeedle"></div>
+  </div>
+
   <div id="pitchOverlay" class="pitchOverlay hidden"></div>
+
+  <div id="gizmoContainer" class="gizmoContainer hidden">
+    <!-- SVG Vector Tierno Definitivo -->
+    <svg id="gizmoAvatar" class="gizmoImage" viewBox="0 0 400 400" width="100%" height="100%" preserveAspectRatio="xMidYMax meet" filter="drop-shadow(0 10px 20px rgba(0,0,0,0.4))">
+      <defs>
+        <clipPath id="ojosClip">
+          <ellipse cx="145" cy="140" rx="36" ry="40"/>
+          <ellipse cx="255" cy="140" rx="36" ry="40"/>
+        </clipPath>
+        <clipPath id="bocaClip">
+          <rect x="185" y="169" width="30" height="30"/> <!-- Límite para que la boca asome nomás por abajo -->
+        </clipPath>
+      </defs>
+
+      <!-- CUERPO y EXTREMIDADES (Base firme miniatura tierna) -->
+      <!-- Piernitas blancas súper cortitas -->
+      <path d="M 165 260 L 165 315 Q 175 320 185 315 L 185 260 Z" fill="#fcf6ec" stroke="#a44c33" stroke-width="1.5"/>
+      <path d="M 235 260 L 235 315 Q 225 320 215 315 L 215 260 Z" fill="#fcf6ec" stroke="#a44c33" stroke-width="1.5"/>
+      <!-- Patitas redonditas rosadas -->
+      <ellipse cx="175" cy="320" rx="14" ry="8" fill="#f2cfb8" stroke="#d3856b" stroke-width="1.5"/>
+      <ellipse cx="225" cy="320" rx="14" ry="8" fill="#f2cfb8" stroke="#d3856b" stroke-width="1.5"/>
+      
+      <!-- Bracitos súper chiquitos pegados (Suben hasta Y=200 para esconderse debajo de la cabeza) -->
+      <path d="M 155 200 C 135 220 140 270 150 280 C 160 275 160 250 165 210 Z" fill="#a44c33"/>
+      <path d="M 140 260 C 135 270 145 285 155 285 C 160 275 160 260 155 255 Z" fill="#fcf6ec"/>
+      <ellipse cx="148" cy="285" rx="8" ry="6" fill="#f2cfb8" stroke="#d3856b" stroke-width="1.5"/>
+
+      <path d="M 245 200 C 265 220 260 270 250 280 C 240 275 240 250 235 210 Z" fill="#a44c33"/>
+      <path d="M 260 260 C 265 270 255 285 245 285 C 240 275 240 260 245 255 Z" fill="#fcf6ec"/>
+      <ellipse cx="252" cy="285" rx="8" ry="6" fill="#f2cfb8" stroke="#d3856b" stroke-width="1.5"/>
+
+      <!-- Pancita redondita de bebé (Sube hasta Y=170 para que la base de la cabeza la superponga) -->
+      <path d="M 160 170 C 145 220 150 300 200 300 C 250 300 255 220 240 170 Z" fill="#a44c33" stroke="#873522" stroke-width="1.5"/>
+      <path d="M 170 190 C 160 230 180 295 200 295 C 220 295 240 230 230 190 C 210 180 190 180 170 190 Z" fill="#fcf6ec"/>
+
+      <!-- CABEZA y PIEZAS DE EXPRESIÓN -->
+      <g id="gizmoHead" style="transition: transform 0.05s ease-out;">
+        <!-- Orejas inmensas de perrito caído -->
+        <g id="orejas">
+          <!-- Izq -->
+          <path d="M 140 120 C 70 80 10 110 30 145 C 50 180 80 195 130 175 Z" fill="#ebad91" stroke="#d3856b" stroke-width="2"/>
+          <path d="M 130 125 C 80 95 30 120 45 145 C 60 170 85 180 125 165 Z" fill="#f7cdbe"/>
+          <!-- Der -->
+          <path d="M 260 120 C 330 80 390 110 370 145 C 350 180 320 195 270 175 Z" fill="#ebad91" stroke="#d3856b" stroke-width="2"/>
+          <path d="M 270 125 C 320 95 370 120 355 145 C 340 170 315 180 275 165 Z" fill="#f7cdbe"/>
+        </g>
+
+        <!-- Base Cabeza Marrón: Ancha e hiper tierna -->
+        <path d="M 200 75 C 120 75 100 140 115 180 C 125 210 275 210 285 180 C 300 140 280 75 200 75 Z" fill="#a44c33"/>
+
+        <!-- Antifaces blancos: Separados por franja central (Como un mono o perrito) -->
+        <path d="M 190 100 C 195 65 145 65 125 90 C 105 115 105 190 140 195 C 170 200 195 170 190 100 Z" fill="#fcf6ec"/>
+        <path d="M 210 100 C 205 65 255 65 275 90 C 295 115 295 190 260 195 C 230 200 205 170 210 100 Z" fill="#fcf6ec"/>
+        <!-- Pelito inferior hocico (crema) uniendo la cara -->
+        <path d="M 135 180 C 135 210 265 210 265 180 C 265 195 220 205 200 205 C 180 205 135 195 135 180 Z" fill="#fcf6ec"/>
+
+        <!-- Ojos Ultra Tiernos + Párpados Clípeados -->
+        <g clip-path="url(#ojosClip)">
+          <!-- El blanco del ojo real (Globo) -->
+          <ellipse cx="145" cy="140" rx="36" ry="40" fill="#fefdfa"/> 
+          <ellipse cx="255" cy="140" rx="36" ry="40" fill="#fefdfa"/> 
+
+          <!-- Iris + Pupilas -->
+          <g id="gizmoPupils" style="transition: transform 0.05s ease-out;">
+            <ellipse cx="149" cy="140" rx="22" ry="25" fill="#5c2e17"/>
+            <ellipse cx="251" cy="140" rx="22" ry="25" fill="#5c2e17"/>
+            <ellipse cx="152" cy="140" rx="13" ry="16" fill="#140a05"/>
+            <ellipse cx="248" cy="140" rx="13" ry="16" fill="#140a05"/>
+
+            <!-- Brillo -->
+            <ellipse cx="143" cy="128" rx="6.5" ry="8" fill="#ffffff" opacity="0.9"/>
+            <ellipse cx="160" cy="152" rx="2.7" ry="2.7" fill="#ffffff" opacity="0.6"/>
+            <ellipse cx="243" cy="128" rx="6.5" ry="8" fill="#ffffff" opacity="0.9"/>
+            <ellipse cx="260" cy="152" rx="2.7" ry="2.7" fill="#ffffff" opacity="0.6"/>
+          </g>
+
+          <!-- SISTEMA DE PÁRPADOS MAGNÍFICOS. Dibujados totalmente bajos, la app los esconderá. -->
+          <g id="gizmoEyelids" style="transition: transform 0.1s ease-out;">
+            <path d="M 90 80 L 200 80 L 200 185 C 150 175 120 185 90 185 Z" fill="#ebad91" opacity="0.95"/>
+            <path d="M 90 185 C 120 185 150 175 200 185" fill="none" stroke="#d3856b" stroke-width="2" stroke-linecap="round"/>
+
+            <path d="M 200 80 L 310 80 L 310 185 C 280 175 250 185 200 185 Z" fill="#ebad91" opacity="0.95"/>
+            <path d="M 310 185 C 280 175 250 185 200 185" fill="none" stroke="#d3856b" stroke-width="2" stroke-linecap="round"/>
+          </g>
+        </g>
+
+        <!-- Hocico Bebé Suave -->
+        <!-- Placa pequeña, tierna y redonda -->
+        <ellipse cx="200" cy="168" rx="18" ry="11" fill="#f2cfb8"/>
+        <!-- Naricita chiquita rosada con puntos sutiles -->
+        <ellipse cx="200" cy="160" rx="5" ry="3" fill="#e69c9b"/>
+        <path d="M 198 160 L 198 161 M 202 160 L 202 161" fill="none" stroke="#9c424d" stroke-width="1.5" stroke-linecap="round"/>
+
+        <!-- BOCA KIRBY TIERNA. Se anima estirando su fondo y bajando la lengua -->
+        <g id="gizmoMouthWrapper">
+           <!-- Labio superior estático sonriente (miniatura) -->
+           <path d="M 194 167 Q 200 170 206 167" fill="none" stroke="#a44c33" stroke-width="1.5" stroke-linecap="round"/>
+           
+           <g clip-path="url(#bocaClip)">
+             <g id="gizmoMouth" style="transition: transform 0.05s ease-out;">
+               <ellipse cx="200" cy="172" rx="7" ry="5" fill="#5c2e17"/> <!-- Hueco boca pequeño oscuro -->
+               <ellipse cx="200" cy="175" rx="5" ry="3" fill="#e69c9b"/> <!-- Lenguita rosa vibrante -->
+             </g>
+           </g>
+        </g>
+      </g>
+    </svg>
+  </div>
+
   <div id="bootSplash" class="bootSplash" aria-hidden="true">
     <h1>THERESCREEN</h1>
   </div>
 
   <header class="topRight">
-    <button id="infoBtn" class="iconBtn" title="Que es esto (Shortcut: 1)">&iexcl;?</button>
-    <button id="settingsBtn" class="iconBtn" title="Panel (Shortcut: 2)">&#9881;</button>
+    <button id="infoBtn" class="iconBtn" title="Ayuda (Atajo: 1)">&iexcl;?</button>
+    <button id="settingsBtn" class="iconBtn" title="Panel (Atajo: 2)">&#9881;</button>
   </header>
 
   <div id="infoModal" class="modal hidden" aria-hidden="true">
     <div class="modalCard">
       <h2>Therescreen</h2>
       <p>
-        Instrumento visual-sonoro controlado por el angulo de la tapa de la Mac.
-        Abrir/cerrar cambia tono, color y brillo de hardware.
+        Theremin visual-sonoro controlado por la tapa de la Mac.
+      </p>
+      <h3>Como se usa</h3>
+      <ul>
+        <li>Abrir/cerrar la tapa cambia la frecuencia del sintetizador.</li>
+        <li>El color en pantalla interpola entre Color B (cerrada) y Color A (abierta).</li>
+        <li>Opcionalmente controla brillo de teclado y pantalla de hardware.</li>
+      </ul>
+
+      <h3>Pantalla</h3>
+      <ul>
+        <li>Panel `Pantalla`: colores A/B, inversion, brillo y calibracion de angulo.</li>
+        <li>Podes mostrar `frecuencia + nota` con `Mostrar frecuencia y nota`.</li>
+        <li>Podes mostrar un piano roll con aguja y tecla activa con `Mostrar piano roll`.</li>
+      </ul>
+
+      <h3>Audio</h3>
+      <ul>
+        <li>Control principal: slider de volumen 0-100% + boton Mute.</li>
+        <li>Panel `Sonido`: presets YAML, sintesis, vibrato, delay y reverb.</li>
+        <li>Mute rapido: atajo <strong>3</strong> (ON/OFF audio).</li>
+      </ul>
+
+      <h3>Mousepad</h3>
+      <ul>
+        <li>Si activas `Volumen por eje Y del mousepad`, mover el cursor hacia arriba sube volumen y hacia abajo lo baja.</li>
+      </ul>
+
+      <h3>Atajos</h3>
+      <ul>
+        <li><strong>1</strong>: abrir/cerrar ayuda</li>
+        <li><strong>2</strong>: abrir/cerrar panel de configuracion</li>
+        <li><strong>3</strong>: mute/unmute de audio</li>
+      </ul>
+
+      <h3>Links</h3>
+      <p>
+        Repo de Therescreen:
+        <a href="https://github.com/vlasvlasvlas/therescreen" target="_blank" rel="noreferrer">github.com/vlasvlasvlas/therescreen</a>
       </p>
       <p>
-        Base tecnica: <a href="https://github.com/pirate/mac-hardware-toys" target="_blank" rel="noreferrer">pirate/mac-hardware-toys</a>
-      </p>
-      <p>
-        Atajos: <strong>1</strong> info, <strong>2</strong> panel.
+        Basado en:
+        <a href="https://github.com/pirate/mac-hardware-toys" target="_blank" rel="noreferrer">github.com/pirate/mac-hardware-toys</a>
       </p>
       <button id="closeInfoBtn" class="closeBtn">Cerrar</button>
     </div>
@@ -73,6 +222,8 @@
         <label class="toggleRow"><input id="invertColor" type="checkbox">Invertir color A/B</label>
         <label class="toggleRow"><input id="invertBrightness" type="checkbox">Invertir intensidad visual</label>
         <label class="toggleRow"><input id="showPitchInfo" type="checkbox">Mostrar frecuencia y nota</label>
+        <label class="toggleRow"><input id="showPianoRoll" type="checkbox">Mostrar piano roll</label>
+        <label class="toggleRow"><input id="showGizmo" type="checkbox">Mostrar Gizmo interactivo</label>
       </div>
 
       <div class="group">
@@ -102,12 +253,26 @@
 
     <section id="tab-sound" class="tabPanel">
       <div class="group">
+        <h4>Audio</h4>
+        <div class="audioRow">
+          <button id="audioMuteBtn" type="button" class="muteBtn">Mute</button>
+          <label class="audioSliderLabel">Volumen <span id="audioVolumeOut" class="out"></span>
+            <input id="audioVolume" type="range" min="0" max="100" step="1">
+          </label>
+        </div>
+        <label class="toggleRow"><input id="audioTrackpadVolumeEnabled" type="checkbox">Volumen por eje Y del mousepad</label>
+        <p class="hint">Atajo <strong>3</strong>: mute/unmute.</p>
+      </div>
+
+      <div class="group">
         <h4>Presets (YAML)</h4>
-        <label>Preset activo
+        <label>Preset activo (se aplica al seleccionar)
           <select id="presetSelect"></select>
         </label>
+        <p class="hint">Al elegir preset se actualizan todos los parametros de esta pestaña.</p>
+        <p class="hint">Todos los parametros de sonido (rapidos y avanzados) se guardan en YAML.</p>
         <div class="rowBtns">
-          <button id="presetLoadBtn" type="button">Cargar preset</button>
+          <button id="presetLoadBtn" type="button">Aplicar preset</button>
           <button id="presetReloadBtn" type="button">Recargar YAML</button>
         </div>
         <label>Guardar actual como
@@ -118,7 +283,7 @@
       </div>
 
       <div class="group">
-        <h4>Sintesis</h4>
+        <h4>Ajuste Rapido</h4>
         <label>Waveform
           <select id="waveform">
             <option value="sine">Sine</option>
@@ -133,48 +298,12 @@
         <label>Frecuencia max <span id="maxHzOut" class="out"></span>
           <input id="maxHz" type="range" min="200" max="5000" step="1">
         </label>
-        <label>Glide ms <span id="glideMsOut" class="out"></span>
-          <input id="glideMs" type="range" min="0" max="500" step="1">
-        </label>
-        <label>Attack ms <span id="attackMsOut" class="out"></span>
-          <input id="attackMs" type="range" min="0" max="400" step="1">
-        </label>
-        <label>Release ms <span id="releaseMsOut" class="out"></span>
-          <input id="releaseMs" type="range" min="10" max="1000" step="1">
-        </label>
-        <label>Volumen bajo <span id="lowVolumeOut" class="out"></span>
-          <input id="lowVolume" type="range" min="0" max="1" step="0.01">
-        </label>
-        <label>Volumen alto <span id="highVolumeOut" class="out"></span>
-          <input id="highVolume" type="range" min="0" max="1" step="0.01">
-        </label>
-        <label>Cutoff Hz <span id="cutoffHzOut" class="out"></span>
-          <input id="cutoffHz" type="range" min="100" max="12000" step="10">
-        </label>
-        <label>Cutoff follow <span id="cutoffFollowOut" class="out"></span>
-          <input id="cutoffFollow" type="range" min="0" max="1" step="0.01">
-        </label>
-      </div>
-
-      <div class="group">
-        <h4>Expresion y FX</h4>
-        <label>Vibrato rate <span id="vibratoRateHzOut" class="out"></span>
-          <input id="vibratoRateHz" type="range" min="0" max="15" step="0.1">
+        <label class="toggleRow"><input id="anchorAt90Enabled" type="checkbox">Anclar frecuencia en 90°</label>
+        <label>Frecuencia en 90° <span id="freqAt90HzOut" class="out"></span>
+          <input id="freqAt90Hz" type="range" min="40" max="5000" step="1">
         </label>
         <label>Vibrato depth <span id="vibratoDepthCentsOut" class="out"></span>
           <input id="vibratoDepthCents" type="range" min="0" max="80" step="0.5">
-        </label>
-        <label>Vibrato ambient <span id="vibratoAmbientCentsOut" class="out"></span>
-          <input id="vibratoAmbientCents" type="range" min="0" max="120" step="0.5">
-        </label>
-        <label>Delay ms <span id="delayMsOut" class="out"></span>
-          <input id="delayMs" type="range" min="10" max="1200" step="1">
-        </label>
-        <label>Delay feedback <span id="delayFeedbackOut" class="out"></span>
-          <input id="delayFeedback" type="range" min="0" max="0.9" step="0.01">
-        </label>
-        <label>Delay mix <span id="delayMixOut" class="out"></span>
-          <input id="delayMix" type="range" min="0" max="1" step="0.01">
         </label>
         <label>Reverb mix <span id="reverbMixOut" class="out"></span>
           <input id="reverbMix" type="range" min="0" max="1" step="0.01">
@@ -182,6 +311,53 @@
         <label>Master gain <span id="masterGainOut" class="out"></span>
           <input id="masterGain" type="range" min="0" max="1.5" step="0.01">
         </label>
+        <button id="toggleAdvancedSound" type="button" class="modeBtn">Mostrar avanzado</button>
+      </div>
+
+      <div id="advancedSound" class="advancedSound">
+        <div class="group">
+          <h4>Sintesis Avanzada</h4>
+          <label>Glide ms <span id="glideMsOut" class="out"></span>
+            <input id="glideMs" type="range" min="0" max="500" step="1">
+          </label>
+          <label>Attack ms <span id="attackMsOut" class="out"></span>
+            <input id="attackMs" type="range" min="0" max="400" step="1">
+          </label>
+          <label>Release ms <span id="releaseMsOut" class="out"></span>
+            <input id="releaseMs" type="range" min="10" max="1000" step="1">
+          </label>
+          <label>Volumen bajo <span id="lowVolumeOut" class="out"></span>
+            <input id="lowVolume" type="range" min="0" max="1" step="0.01">
+          </label>
+          <label>Volumen alto <span id="highVolumeOut" class="out"></span>
+            <input id="highVolume" type="range" min="0" max="1" step="0.01">
+          </label>
+          <label>Cutoff Hz <span id="cutoffHzOut" class="out"></span>
+            <input id="cutoffHz" type="range" min="100" max="12000" step="10">
+          </label>
+          <label>Cutoff follow <span id="cutoffFollowOut" class="out"></span>
+            <input id="cutoffFollow" type="range" min="0" max="1" step="0.01">
+          </label>
+        </div>
+
+        <div class="group">
+          <h4>Expresion y FX Avanzado</h4>
+          <label>Vibrato rate <span id="vibratoRateHzOut" class="out"></span>
+            <input id="vibratoRateHz" type="range" min="0" max="15" step="0.1">
+          </label>
+          <label>Vibrato ambient <span id="vibratoAmbientCentsOut" class="out"></span>
+            <input id="vibratoAmbientCents" type="range" min="0" max="120" step="0.5">
+          </label>
+          <label>Delay ms <span id="delayMsOut" class="out"></span>
+            <input id="delayMs" type="range" min="10" max="1200" step="1">
+          </label>
+          <label>Delay feedback <span id="delayFeedbackOut" class="out"></span>
+            <input id="delayFeedback" type="range" min="0" max="0.9" step="0.01">
+          </label>
+          <label>Delay mix <span id="delayMixOut" class="out"></span>
+            <input id="delayMix" type="range" min="0" max="1" step="0.01">
+          </label>
+        </div>
       </div>
     </section>
   </aside>

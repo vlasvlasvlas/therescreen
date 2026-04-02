@@ -179,6 +179,9 @@ def cleanup_existing_therescreen_on_port(port: int) -> bool:
     return cleaned
 
 DEFAULT_CONFIG: dict[str, Any] = {
+    "meta": {
+        "schemaVersion": 5,
+    },
     "sensor": {
         "angleMin": 0.0,
         "angleMax": 125.0,
@@ -187,11 +190,13 @@ DEFAULT_CONFIG: dict[str, Any] = {
         "useAmbient": True,
     },
     "visual": {
-        "colorA": "#2bd0ff",
-        "colorB": "#ff6a00",
+        "colorA": "#ff4fd8",
+        "colorB": "#ffd400",
         "invertColor": False,
         "invertBrightness": False,
         "showPitchInfo": False,
+        "showPianoRoll": False,
+        "showGizmo": False,
         "minOpacity": 0.08,
         "maxOpacity": 1.0,
     },
@@ -199,6 +204,8 @@ DEFAULT_CONFIG: dict[str, Any] = {
         "waveform": "sine",
         "minHz": 130.81,
         "maxHz": 1760.0,
+        "anchorAt90Enabled": False,
+        "freqAt90Hz": 880.0,
         "lowVolume": 0.03,
         "highVolume": 0.66,
         "attackMs": 8.0,
@@ -215,11 +222,16 @@ DEFAULT_CONFIG: dict[str, Any] = {
         "reverbMix": 0.30,
         "masterGain": 0.90,
     },
+    "audio": {
+        "mute": False,
+        "volumePercent": 100.0,
+        "trackpadVolumeEnabled": False,
+    },
     "brightness": {
         "enabled": True,
         "updateHz": 12.0,
         "keyboardEnabled": True,
-        "keyboardInvert": False,
+        "keyboardInvert": True,
         "keyboardMin": 0,
         "keyboardMax": 100,
         "screenEnabled": True,
@@ -230,7 +242,7 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "commands": {
         "lid": "lid-angle",
         "ambient": "ambient-light",
-        "speaker": "speaker --block-size 128",
+        "speaker": "speaker",
         "keyboardSet": "keyboard-brightness --set={value}",
         "screenSet": "screen-brightness --set={value}",
     },
@@ -242,6 +254,8 @@ SYNTH_PARAM_ORDER = (
     "waveform",
     "minHz",
     "maxHz",
+    "anchorAt90Enabled",
+    "freqAt90Hz",
     "lowVolume",
     "highVolume",
     "attackMs",
@@ -258,11 +272,15 @@ SYNTH_PARAM_ORDER = (
     "reverbMix",
     "masterGain",
 )
+
+CURRENT_SCHEMA_VERSION = int(DEFAULT_CONFIG["meta"]["schemaVersion"])
 DEFAULT_SYNTH_PRESETS: dict[str, dict[str, Any]] = {
     "classic_theremin": {
         "waveform": "sine",
         "minHz": 130.81,
         "maxHz": 1760.0,
+        "anchorAt90Enabled": False,
+        "freqAt90Hz": 880.0,
         "lowVolume": 0.03,
         "highVolume": 0.66,
         "attackMs": 8.0,
@@ -283,6 +301,8 @@ DEFAULT_SYNTH_PRESETS: dict[str, dict[str, Any]] = {
         "waveform": "triangle",
         "minHz": 98.0,
         "maxHz": 1480.0,
+        "anchorAt90Enabled": False,
+        "freqAt90Hz": 740.0,
         "lowVolume": 0.02,
         "highVolume": 0.72,
         "attackMs": 12.0,
@@ -303,6 +323,8 @@ DEFAULT_SYNTH_PRESETS: dict[str, dict[str, Any]] = {
         "waveform": "saw",
         "minHz": 164.81,
         "maxHz": 2637.0,
+        "anchorAt90Enabled": False,
+        "freqAt90Hz": 1174.66,
         "lowVolume": 0.01,
         "highVolume": 0.58,
         "attackMs": 4.0,
@@ -368,12 +390,13 @@ class SharedState:
         except Exception as exc:
             LOGGER.warning("Could not save config file %s: %s", self.config_file, exc)
 
-    def apply_patch(self, patch: dict[str, Any]) -> dict[str, Any]:
+    def apply_patch(self, patch: dict[str, Any], *, persist: bool = True) -> dict[str, Any]:
         with self.lock:
             merged = deep_merge(copy.deepcopy(self.config), patch)
             self.config = sanitize_config(merged)
             config_copy = copy.deepcopy(self.config)
-        self._save_config_file()
+        if persist:
+            self._save_config_file()
         return config_copy
 
     def replace_commands_from_args(self, args: argparse.Namespace) -> None:
@@ -456,6 +479,31 @@ def lid_level_from_angle(angle_deg: float, sensor_cfg: dict[str, Any]) -> float:
     return normalize(float(angle_deg), float(sensor_cfg["angleMin"]), float(sensor_cfg["angleMax"]))
 
 
+def map_pitch_level_with_90_anchor(
+    lid_level: float,
+    *,
+    sensor_cfg: dict[str, Any],
+    synth_cfg: dict[str, Any],
+) -> float:
+    lid = clamp01(lid_level)
+    if not bool(synth_cfg.get("anchorAt90Enabled", False)):
+        return lid
+
+    min_hz = float(synth_cfg.get("minHz", 130.81))
+    max_hz = float(synth_cfg.get("maxHz", 1760.0))
+    if max_hz <= min_hz:
+        return lid
+
+    target_hz = clamp(float(synth_cfg.get("freqAt90Hz", min_hz)), min_hz, max_hz)
+    ratio = max_hz / min_hz
+    if ratio <= 1.000001:
+        return lid
+
+    target_level = math.log(target_hz / min_hz) / math.log(ratio)
+    lid_at_90 = lid_level_from_angle(90.0, sensor_cfg)
+    return clamp01(lid + (target_level - lid_at_90))
+
+
 def alpha_from_ms(sample_rate: float, time_ms: float) -> float:
     t = max(1e-4, float(time_ms) / 1000.0)
     return 1.0 - math.exp(-1.0 / (max(1.0, sample_rate) * t))
@@ -498,6 +546,54 @@ def deep_merge(base: dict[str, Any], patch: dict[str, Any]) -> dict[str, Any]:
     return base
 
 
+def apply_default_migrations(cfg: dict[str, Any]) -> dict[str, Any]:
+    out = copy.deepcopy(cfg)
+    meta = out.get("meta", {})
+    try:
+        schema_version = int(meta.get("schemaVersion", 0))
+    except (TypeError, ValueError):
+        schema_version = 0
+
+    if schema_version < 2:
+        visual = out.setdefault("visual", {})
+        color_a = str(visual.get("colorA", "")).lower()
+        color_b = str(visual.get("colorB", "")).lower()
+        old_a = "#2bd0ff"
+        old_b = "#ff6a00"
+        if (color_a in ("", "#000000", old_a)) and (color_b in ("", "#000000", old_b)):
+            visual["colorA"] = DEFAULT_CONFIG["visual"]["colorA"]
+            visual["colorB"] = DEFAULT_CONFIG["visual"]["colorB"]
+
+        brightness = out.setdefault("brightness", {})
+        kb_inv = bool(brightness.get("keyboardInvert", False))
+        kb_min = int(clamp(float(brightness.get("keyboardMin", 0)), 0, 100))
+        kb_max = int(clamp(float(brightness.get("keyboardMax", 100)), kb_min, 100))
+        if (not kb_inv) and kb_min == 0 and kb_max == 100:
+            brightness["keyboardInvert"] = True
+
+    if schema_version < 3:
+        audio = out.setdefault("audio", {})
+        if "enabled" not in audio:
+            audio["enabled"] = True
+
+    if schema_version < 4:
+        audio = out.setdefault("audio", {})
+        if "mute" not in audio:
+            if "enabled" in audio:
+                audio["mute"] = not bool(audio.get("enabled", True))
+            else:
+                audio["mute"] = False
+        if "volumePercent" not in audio:
+            audio["volumePercent"] = 100.0
+    if schema_version < 5:
+        audio = out.setdefault("audio", {})
+        if "trackpadVolumeEnabled" not in audio:
+            audio["trackpadVolumeEnabled"] = False
+
+    out["meta"] = {"schemaVersion": CURRENT_SCHEMA_VERSION}
+    return out
+
+
 def sanitize_synth_config(raw_synth: dict[str, Any] | None) -> dict[str, Any]:
     source = dict(raw_synth or {})
     synth = copy.deepcopy(DEFAULT_CONFIG["synth"])
@@ -508,6 +604,8 @@ def sanitize_synth_config(raw_synth: dict[str, Any] | None) -> dict[str, Any]:
         synth["waveform"] = "sine"
     synth["minHz"] = clamp(float(synth.get("minHz", 130.81)), 20.0, 4000.0)
     synth["maxHz"] = clamp(float(synth.get("maxHz", 1760.0)), synth["minHz"] + 10.0, 12000.0)
+    synth["anchorAt90Enabled"] = bool(synth.get("anchorAt90Enabled", False))
+    synth["freqAt90Hz"] = clamp(float(synth.get("freqAt90Hz", 880.0)), synth["minHz"], synth["maxHz"])
     synth["lowVolume"] = clamp(float(synth.get("lowVolume", 0.04)), 0.0, 1.0)
     synth["highVolume"] = clamp(float(synth.get("highVolume", 0.62)), synth["lowVolume"], 1.0)
     synth["attackMs"] = clamp(float(synth.get("attackMs", 80.0)), 0.0, 2000.0)
@@ -631,7 +729,17 @@ class SynthPresetStore:
             loaded = {}
         if not loaded:
             loaded = copy.deepcopy(DEFAULT_SYNTH_PRESETS)
-        self.presets = {name: sanitize_synth_config(values) for name, values in loaded.items()}
+        normalized: dict[str, dict[str, Any]] = {}
+        for raw_name, values in loaded.items():
+            key = normalize_preset_name(raw_name)
+            if key in normalized and key != raw_name:
+                LOGGER.warning(
+                    "Duplicate preset name after normalization: `%s` -> `%s` (overwriting previous)",
+                    raw_name,
+                    key,
+                )
+            normalized[key] = sanitize_synth_config(values)
+        self.presets = normalized
         LOGGER.info("Loaded %s synth presets from %s", len(self.presets), self.path)
 
     def _save_unlocked(self) -> None:
@@ -671,7 +779,9 @@ class SynthPresetStore:
         return key
 
 def sanitize_config(cfg: dict[str, Any]) -> dict[str, Any]:
-    out = copy.deepcopy(cfg)
+    out = apply_default_migrations(cfg)
+
+    out["meta"] = {"schemaVersion": CURRENT_SCHEMA_VERSION}
 
     sensor = out.get("sensor", {})
     sensor["angleMin"] = float(sensor.get("angleMin", 0.0))
@@ -684,11 +794,13 @@ def sanitize_config(cfg: dict[str, Any]) -> dict[str, Any]:
     out["sensor"] = sensor
 
     visual = out.get("visual", {})
-    visual["colorA"] = parse_color_hex(visual.get("colorA"), "#2bd0ff")
-    visual["colorB"] = parse_color_hex(visual.get("colorB"), "#ff6a00")
+    visual["colorA"] = parse_color_hex(visual.get("colorA"), str(DEFAULT_CONFIG["visual"]["colorA"]))
+    visual["colorB"] = parse_color_hex(visual.get("colorB"), str(DEFAULT_CONFIG["visual"]["colorB"]))
     visual["invertColor"] = bool(visual.get("invertColor", False))
     visual["invertBrightness"] = bool(visual.get("invertBrightness", False))
     visual["showPitchInfo"] = bool(visual.get("showPitchInfo", False))
+    visual["showPianoRoll"] = bool(visual.get("showPianoRoll", False))
+    visual["showGizmo"] = bool(visual.get("showGizmo", False))
     visual["minOpacity"] = clamp(float(visual.get("minOpacity", 0.08)), 0.0, 1.0)
     visual["maxOpacity"] = clamp(float(visual.get("maxOpacity", 1.0)), visual["minOpacity"], 1.0)
     out["visual"] = visual
@@ -696,11 +808,20 @@ def sanitize_config(cfg: dict[str, Any]) -> dict[str, Any]:
     out["synth"] = sanitize_synth_config(out.get("synth"))
     out["synthPreset"] = normalize_preset_name(str(out.get("synthPreset", "classic_theremin")))
 
+    audio = out.get("audio", {})
+    legacy_enabled = audio.get("enabled", None)
+    audio["mute"] = bool(audio.get("mute", False))
+    if legacy_enabled is not None and not bool(legacy_enabled):
+        audio["mute"] = True
+    audio["volumePercent"] = clamp(float(audio.get("volumePercent", 100.0)), 0.0, 100.0)
+    audio["trackpadVolumeEnabled"] = bool(audio.get("trackpadVolumeEnabled", False))
+    out["audio"] = audio
+
     brightness = out.get("brightness", {})
     brightness["enabled"] = bool(brightness.get("enabled", True))
-    brightness["updateHz"] = clamp(float(brightness.get("updateHz", 4.0)), 0.5, 30.0)
+    brightness["updateHz"] = clamp(float(brightness.get("updateHz", 12.0)), 0.5, 30.0)
     brightness["keyboardEnabled"] = bool(brightness.get("keyboardEnabled", True))
-    brightness["keyboardInvert"] = bool(brightness.get("keyboardInvert", False))
+    brightness["keyboardInvert"] = bool(brightness.get("keyboardInvert", True))
     brightness["screenEnabled"] = bool(brightness.get("screenEnabled", True))
     brightness["screenInvert"] = bool(brightness.get("screenInvert", False))
     brightness["keyboardMin"] = int(clamp(float(brightness.get("keyboardMin", 0)), 0, 100))
@@ -1140,6 +1261,12 @@ class ThereminDSP:
         self.phase = 0.0
         self.lfo_phase = 0.0
         self.lp_state = 0.0
+        self.pitch_state = 0.0
+        self.amp_state = 0.0
+        self.ambient_state = 0.5
+        self.hp_prev_x = 0.0
+        self.hp_prev_y = 0.0
+        self.hp_r = math.exp(-2.0 * math.pi * 18.0 / max(1.0, self.sample_rate))
 
         self.delay = np.zeros(1, dtype=np.float32)
         self.delay_idx = 0
@@ -1168,16 +1295,31 @@ class ThereminDSP:
             return np.where(np.sin(phase) >= 0.0, 1.0, -1.0)
         return np.sin(phase)
 
-    def render(self, level: float, gate: float, ambient: float, synth_cfg: dict[str, Any]) -> Any:
+    def render(
+        self,
+        *,
+        pitch_level: float,
+        amp_level: float,
+        gate: float,
+        ambient: float,
+        synth_cfg: dict[str, Any],
+    ) -> Any:
         n = self.block_size
-        level = clamp01(level)
+        pitch_level = clamp01(pitch_level)
+        amp_level = clamp01(amp_level)
         gate = clamp01(gate)
         ambient = clamp01(ambient)
+
+        level_alpha = alpha_from_ms(self.sample_rate, 10.0)
+        ambient_alpha = alpha_from_ms(self.sample_rate, 24.0)
+        pitch_curve, self.pitch_state = smooth_curve(self.pitch_state, pitch_level, level_alpha, n)
+        amp_curve_level, self.amp_state = smooth_curve(self.amp_state, amp_level, level_alpha, n)
+        ambient_curve, self.ambient_state = smooth_curve(self.ambient_state, ambient, ambient_alpha, n)
 
         min_hz = float(synth_cfg["minHz"])
         max_hz = float(synth_cfg["maxHz"])
         ratio = max(1.0001, max_hz / min_hz)
-        target_freq = min_hz * math.pow(ratio, level)
+        target_freq = min_hz * math.pow(ratio, self.pitch_state)
 
         glide_alpha = alpha_from_ms(self.sample_rate, float(synth_cfg["glideMs"]))
         freq_curve, self.freq = smooth_curve(self.freq, target_freq, glide_alpha, n)
@@ -1187,18 +1329,18 @@ class ThereminDSP:
         env_alpha = attack_alpha if gate > self.env else release_alpha
         env_curve, self.env = smooth_curve(self.env, gate, env_alpha, n)
 
-        base_amp = float(synth_cfg["lowVolume"]) + (
-            float(synth_cfg["highVolume"]) - float(synth_cfg["lowVolume"])
-        ) * level
-        amp_curve = env_curve * base_amp
+        low_volume = float(synth_cfg["lowVolume"])
+        high_volume = float(synth_cfg["highVolume"])
+        amp_base_curve = low_volume + (high_volume - low_volume) * amp_curve_level
+        amp_curve = env_curve * amp_base_curve
 
         lfo_rate = float(synth_cfg["vibratoRateHz"])
-        depth_cents = float(synth_cfg["vibratoDepthCents"]) + ambient * float(
+        depth_cents_curve = float(synth_cfg["vibratoDepthCents"]) + ambient_curve * float(
             synth_cfg["vibratoAmbientCents"]
         )
         lfo_step = 2.0 * math.pi * lfo_rate / self.sample_rate
         lfo_phase_line = self.lfo_phase + lfo_step * np.arange(n, dtype=np.float64)
-        vib = np.power(2.0, (depth_cents / 1200.0) * np.sin(lfo_phase_line))
+        vib = np.power(2.0, (depth_cents_curve / 1200.0) * np.sin(lfo_phase_line))
         self.lfo_phase = float((self.lfo_phase + lfo_step * n) % (2.0 * math.pi))
 
         freq_mod = freq_curve * vib
@@ -1213,7 +1355,7 @@ class ThereminDSP:
 
         cutoff_base = float(synth_cfg["cutoffHz"])
         cutoff_follow = float(synth_cfg["cutoffFollow"])
-        cutoff = cutoff_base + cutoff_follow * level * (self.sample_rate * 0.45 - cutoff_base)
+        cutoff = cutoff_base + cutoff_follow * self.pitch_state * (self.sample_rate * 0.45 - cutoff_base)
         cutoff = clamp(cutoff, 50.0, self.sample_rate * 0.49)
         lp_alpha = 1.0 - math.exp(-2.0 * math.pi * cutoff / self.sample_rate)
 
@@ -1222,6 +1364,7 @@ class ThereminDSP:
         delay_mix = float(synth_cfg["delayMix"])
         reverb_mix = float(synth_cfg["reverbMix"])
         dry_gain = max(0.0, 1.0 - delay_mix - reverb_mix)
+        master_gain = float(synth_cfg["masterGain"])
 
         self._ensure_delay(delay_ms)
         out = np.empty(n, dtype=np.float32)
@@ -1249,10 +1392,15 @@ class ThereminDSP:
             rv /= float(len(self.reverb_buffers))
 
             mixed = dry_gain * filtered + delay_mix * d + reverb_mix * rv
-            out[i] = float(mixed)
+            x = float(mixed) * master_gain
+            y = x - self.hp_prev_x + (self.hp_r * self.hp_prev_y)
+            self.hp_prev_x = x
+            self.hp_prev_y = y
+            out[i] = float(y)
 
-        out *= float(synth_cfg["masterGain"])
-        return np.clip(out, -1.0, 1.0).astype(np.float32, copy=False)
+        # Soft clip avoids harsh discontinuities when dynamics spike quickly.
+        out = np.tanh(out * 1.05).astype(np.float32, copy=False)
+        return out
 
 
 class AudioEngine:
@@ -1266,6 +1414,7 @@ class AudioEngine:
         self.speaker_proc: subprocess.Popen[bytes] | None = None
         self.dsp: ThereminDSP | None = None
         self._gate_state = 0.0
+        self._output_gain_state = 0.0
 
     def start(self) -> None:
         self.thread = threading.Thread(target=self._run, daemon=True, name="audio-engine")
@@ -1326,9 +1475,17 @@ class AudioEngine:
         while not self.stop_event.is_set():
             snap = self.state.snapshot()
             cfg = snap["config"]
+            audio_cfg = cfg.get("audio", {})
             sensor_cfg = cfg["sensor"]
             synth_cfg = cfg["synth"]
             sensor = snap["sensor"]
+            muted = bool(audio_cfg.get("mute", False))
+            volume_pct = clamp(float(audio_cfg.get("volumePercent", 100.0)), 0.0, 100.0)
+            target_gain = 0.0 if muted else (float(volume_pct) / 100.0)
+
+            if self.speaker_proc is None and target_gain <= 0.0001 and self._output_gain_state <= 0.0001:
+                time.sleep(0.02)
+                continue
 
             now_ts = snap["ts"]
             stale = sensor["lastLidTime"] <= 0.0 or (now_ts - sensor["lastLidTime"]) > float(
@@ -1347,7 +1504,22 @@ class AudioEngine:
             if bool(sensor_cfg["useAmbient"]):
                 ambient = float(sensor["ambientLevel"])
 
-            block = self.dsp.render(level=level, gate=gate, ambient=ambient, synth_cfg=synth_cfg)
+            pitch_level = map_pitch_level_with_90_anchor(level, sensor_cfg=sensor_cfg, synth_cfg=synth_cfg)
+            block = self.dsp.render(
+                pitch_level=pitch_level,
+                amp_level=level,
+                gate=gate,
+                ambient=ambient,
+                synth_cfg=synth_cfg,
+            )
+            gain_alpha = alpha_from_ms(self.sample_rate, 12.0)
+            gain_curve, self._output_gain_state = smooth_curve(
+                self._output_gain_state, target_gain, gain_alpha, block.shape[0]
+            )
+            if self._output_gain_state <= 0.0001 and target_gain <= 0.0001:
+                block.fill(0.0)
+            else:
+                block = (block * gain_curve).astype(np.float32, copy=False)
 
             if self.speaker_proc is None:
                 if not self._start_speaker(str(cfg["commands"]["speaker"])):
@@ -1511,6 +1683,14 @@ class AppRequestHandler(BaseHTTPRequestHandler):
             return
         if parsed.path == "/api/synth-presets/reload":
             self._handle_reload_presets()
+            return
+        if parsed.path == "/api/runtime-config":
+            payload = self._read_json_body()
+            if payload is None:
+                return
+            assert self.state is not None
+            cfg = self.state.apply_patch(payload, persist=False)
+            self._write_json(200, {"ok": True, "config": cfg})
             return
         if parsed.path != "/api/config":
             self._write_json(404, {"error": "not found"})
@@ -1823,7 +2003,8 @@ def main() -> int:
     server.timeout = 0.5
 
     LOGGER.info("UI: http://%s:%s", args.host, args.port)
-    LOGGER.info("Press Ctrl+C to stop")
+    LOGGER.info("Stop (misma terminal): Ctrl+C")
+    LOGGER.info("Stop (otra terminal): ./therescreen.sh stop --port %s", args.port)
     LOGGER.info("Tip: run with sudo if lid/ambient commands fail due permissions")
 
     try:
