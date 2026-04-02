@@ -1,0 +1,62 @@
+# Therescreen synth presets
+# One preset per top-level key
+
+classic_theremin:
+  waveform: sine
+  minHz: 130.81
+  maxHz: 1760.0
+  lowVolume: 0.03
+  highVolume: 0.66
+  attackMs: 8.0
+  releaseMs: 120.0
+  glideMs: 24.0
+  vibratoRateHz: 6.1
+  vibratoDepthCents: 8.0
+  vibratoAmbientCents: 16.0
+  cutoffHz: 4200.0
+  cutoffFollow: 0.3
+  delayMs: 360.0
+  delayFeedback: 0.22
+  delayMix: 0.14
+  reverbMix: 0.3
+  masterGain: 0.9
+
+space_voice:
+  waveform: triangle
+  minHz: 98.0
+  maxHz: 1480.0
+  lowVolume: 0.02
+  highVolume: 0.72
+  attackMs: 12.0
+  releaseMs: 220.0
+  glideMs: 38.0
+  vibratoRateHz: 5.4
+  vibratoDepthCents: 15.0
+  vibratoAmbientCents: 12.0
+  cutoffHz: 2900.0
+  cutoffFollow: 0.45
+  delayMs: 440.0
+  delayFeedback: 0.32
+  delayMix: 0.18
+  reverbMix: 0.38
+  masterGain: 0.82
+
+glass_lead:
+  waveform: saw
+  minHz: 164.81
+  maxHz: 2637.0
+  lowVolume: 0.01
+  highVolume: 0.58
+  attackMs: 4.0
+  releaseMs: 90.0
+  glideMs: 16.0
+  vibratoRateHz: 6.8
+  vibratoDepthCents: 6.0
+  vibratoAmbientCents: 10.0
+  cutoffHz: 5200.0
+  cutoffFollow: 0.25
+  delayMs: 220.0
+  delayFeedback: 0.18
+  delayMix: 0.10
+  reverbMix: 0.22
+  masterGain: 0.78

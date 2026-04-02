@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Therescreen</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div id="blackBase"></div>
+  <div id="colorOverlay"></div>
+  <div id="pitchOverlay" class="pitchOverlay hidden"></div>
+  <div id="bootSplash" class="bootSplash" aria-hidden="true">
+    <h1>THERESCREEN</h1>
+  </div>
+
+  <header class="topRight">
+    <button id="infoBtn" class="iconBtn" title="Que es esto (Shortcut: 1)">&iexcl;?</button>
+    <button id="settingsBtn" class="iconBtn" title="Panel (Shortcut: 2)">&#9881;</button>
+  </header>
+
+  <div id="infoModal" class="modal hidden" aria-hidden="true">
+    <div class="modalCard">
+      <h2>Therescreen</h2>
+      <p>
+        Instrumento visual-sonoro controlado por el angulo de la tapa de la Mac.
+        Abrir/cerrar cambia tono, color y brillo de hardware.
+      </p>
+      <p>
+        Base tecnica: <a href="https://github.com/pirate/mac-hardware-toys" target="_blank" rel="noreferrer">pirate/mac-hardware-toys</a>
+      </p>
+      <p>
+        Atajos: <strong>1</strong> info, <strong>2</strong> panel.
+      </p>
+      <button id="closeInfoBtn" class="closeBtn">Cerrar</button>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar" aria-hidden="true">
+    <div class="sidebarHeader">
+      <h3>Control</h3>
+      <button id="closeSidebarBtn" class="closeBtn small">x</button>
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="Areas">
+      <button class="tabBtn active" data-tab="screen" type="button">Pantalla</button>
+      <button class="tabBtn" data-tab="keyboard" type="button">Teclado</button>
+      <button class="tabBtn" data-tab="sound" type="button">Sonido</button>
+    </div>
+
+    <section id="tab-screen" class="tabPanel active">
+      <div class="group">
+        <h4>Pantalla Hardware</h4>
+        <label class="toggleRow"><input id="screenPower" type="checkbox">Activar control hardware</label>
+        <label class="toggleRow"><input id="screenEnabled" type="checkbox">Pantalla habilitada</label>
+        <label class="toggleRow"><input id="screenInvert" type="checkbox">Invertir mapeo pantalla</label>
+        <label>Brillo min <span id="screenMinOut" class="out"></span>
+          <input id="screenMin" type="range" min="0" max="100" step="1">
+        </label>
+        <label>Brillo max <span id="screenMaxOut" class="out"></span>
+          <input id="screenMax" type="range" min="0" max="100" step="1">
+        </label>
+      </div>
+
+      <div class="group">
+        <h4>Color En Pantalla</h4>
+        <label>Color A (tapa abierta)
+          <input id="colorA" type="color">
+        </label>
+        <label>Color B (tapa cerrada)
+          <input id="colorB" type="color">
+        </label>
+        <label class="toggleRow"><input id="invertColor" type="checkbox">Invertir color A/B</label>
+        <label class="toggleRow"><input id="invertBrightness" type="checkbox">Invertir intensidad visual</label>
+        <label class="toggleRow"><input id="showPitchInfo" type="checkbox">Mostrar frecuencia y nota</label>
+      </div>
+
+      <div class="group">
+        <h4>Calibracion Angulo</h4>
+        <label>Angulo min (cerrada) <span id="angleMinOut" class="out"></span>
+          <input id="angleMin" type="range" min="0" max="70" step="1">
+        </label>
+        <label>Angulo max (abierta) <span id="angleMaxOut" class="out"></span>
+          <input id="angleMax" type="range" min="70" max="180" step="1">
+        </label>
+      </div>
+    </section>
+
+    <section id="tab-keyboard" class="tabPanel">
+      <div class="group">
+        <h4>Teclado Hardware</h4>
+        <label class="toggleRow"><input id="keyboardEnabled" type="checkbox">Teclado habilitado</label>
+        <label class="toggleRow"><input id="keyboardInvert" type="checkbox">Invertir mapeo teclado</label>
+        <label>Brillo min <span id="keyboardMinOut" class="out"></span>
+          <input id="keyboardMin" type="range" min="0" max="100" step="1">
+        </label>
+        <label>Brillo max <span id="keyboardMaxOut" class="out"></span>
+          <input id="keyboardMax" type="range" min="0" max="100" step="1">
+        </label>
+      </div>
+    </section>
+
+    <section id="tab-sound" class="tabPanel">
+      <div class="group">
+        <h4>Presets (YAML)</h4>
+        <label>Preset activo
+          <select id="presetSelect"></select>
+        </label>
+        <div class="rowBtns">
+          <button id="presetLoadBtn" type="button">Cargar preset</button>
+          <button id="presetReloadBtn" type="button">Recargar YAML</button>
+        </div>
+        <label>Guardar actual como
+          <input id="presetNameInput" type="text" placeholder="mi_theremin_preset">
+        </label>
+        <button id="presetSaveBtn" type="button">Guardar preset</button>
+        <p id="presetStatus" class="hint"></p>
+      </div>
+
+      <div class="group">
+        <h4>Sintesis</h4>
+        <label>Waveform
+          <select id="waveform">
+            <option value="sine">Sine</option>
+            <option value="triangle">Triangle</option>
+            <option value="saw">Saw</option>
+            <option value="square">Square</option>
+          </select>
+        </label>
+        <label>Frecuencia min <span id="minHzOut" class="out"></span>
+          <input id="minHz" type="range" min="40" max="880" step="1">
+        </label>
+        <label>Frecuencia max <span id="maxHzOut" class="out"></span>
+          <input id="maxHz" type="range" min="200" max="5000" step="1">
+        </label>
+        <label>Glide ms <span id="glideMsOut" class="out"></span>
+          <input id="glideMs" type="range" min="0" max="500" step="1">
+        </label>
+        <label>Attack ms <span id="attackMsOut" class="out"></span>
+          <input id="attackMs" type="range" min="0" max="400" step="1">
+        </label>
+        <label>Release ms <span id="releaseMsOut" class="out"></span>
+          <input id="releaseMs" type="range" min="10" max="1000" step="1">
+        </label>
+        <label>Volumen bajo <span id="lowVolumeOut" class="out"></span>
+          <input id="lowVolume" type="range" min="0" max="1" step="0.01">
+        </label>
+        <label>Volumen alto <span id="highVolumeOut" class="out"></span>
+          <input id="highVolume" type="range" min="0" max="1" step="0.01">
+        </label>
+        <label>Cutoff Hz <span id="cutoffHzOut" class="out"></span>
+          <input id="cutoffHz" type="range" min="100" max="12000" step="10">
+        </label>
+        <label>Cutoff follow <span id="cutoffFollowOut" class="out"></span>
+          <input id="cutoffFollow" type="range" min="0" max="1" step="0.01">
+        </label>
+      </div>
+
+      <div class="group">
+        <h4>Expresion y FX</h4>
+        <label>Vibrato rate <span id="vibratoRateHzOut" class="out"></span>
+          <input id="vibratoRateHz" type="range" min="0" max="15" step="0.1">
+        </label>
+        <label>Vibrato depth <span id="vibratoDepthCentsOut" class="out"></span>
+          <input id="vibratoDepthCents" type="range" min="0" max="80" step="0.5">
+        </label>
+        <label>Vibrato ambient <span id="vibratoAmbientCentsOut" class="out"></span>
+          <input id="vibratoAmbientCents" type="range" min="0" max="120" step="0.5">
+        </label>
+        <label>Delay ms <span id="delayMsOut" class="out"></span>
+          <input id="delayMs" type="range" min="10" max="1200" step="1">
+        </label>
+        <label>Delay feedback <span id="delayFeedbackOut" class="out"></span>
+          <input id="delayFeedback" type="range" min="0" max="0.9" step="0.01">
+        </label>
+        <label>Delay mix <span id="delayMixOut" class="out"></span>
+          <input id="delayMix" type="range" min="0" max="1" step="0.01">
+        </label>
+        <label>Reverb mix <span id="reverbMixOut" class="out"></span>
+          <input id="reverbMix" type="range" min="0" max="1" step="0.01">
+        </label>
+        <label>Master gain <span id="masterGainOut" class="out"></span>
+          <input id="masterGain" type="range" min="0" max="1.5" step="0.01">
+        </label>
+      </div>
+    </section>
+  </aside>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>
