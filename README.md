@@ -354,12 +354,13 @@ Carpeta de canciones MIDI:
 - `ui_game/midis/` (`.mid` o `.midi`)
 - Catalogo opcional de metadata manual: `ui_game/midis/catalog.json`
 - Fuente recomendada para bajar MIDIs retro:
-  https://www.vgmusic.com/music/computer/commodore/commodore/
+  https://www.vgmusic.com/music/
 - MIDIs actualmente cargados en el repo:
   - `bubble.mid`
   - `greenberet.mid`
   - `pitfall2.mid`
   - `sh-old-bgm.mid` (Space Harrier)
+  - `monkeyisland1_title.mid` (The Secret of Monkey Island)
   - `ninja1.mid` (The Last Ninja)
   - `lastwave.mid` (OutRun)
   - `pacland.mid`

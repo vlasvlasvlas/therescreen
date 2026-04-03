@@ -107,6 +107,20 @@
       "trimStartSec": 1.04,
       "tags": ["c64", "arcade", "retro"],
       "source": "https://www.vgmusic.com/music/computer/commodore/commodore/"
+    },
+    {
+      "file": "monkeyisland1_title.mid",
+      "displayName": "Monkey Island 1 - Title Theme",
+      "game": "The Secret of Monkey Island",
+      "platform": "PC",
+      "year": 1990,
+      "composer": "Community MIDI",
+      "difficultyHint": "normal",
+      "bpm": 126,
+      "trimStartSec": 29.32,
+      "melodyTrackIndex": 2,
+      "tags": ["pc", "lucasarts", "adventure", "retro"],
+      "source": "https://www.vgmusic.com/music/pc/"
     }
   ]
 }
