@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Therescreen Game</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+  <!-- Global overlays (always present) -->
+  <div id="flashOverlay"></div>
+  <div id="judgePopup"></div>
+  <div id="comboBadge"></div>
+
+  <!-- Shared top bar -->
+  <div class="topBar">
+    <span class="title">THERESCREEN GAME</span>
+    <div class="topRight">
+      <span id="statusBadge" class="badge">idle</span>
+      <button id="helpBtn" class="btn icon" title="Ayuda (1)">?</button>
+      <button id="settingsBtn" class="btn icon" title="Ajustes (2)">⚙</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       SCREEN: SONG SELECT
+  ══════════════════════════════════════ -->
+  <div id="screenSelect" class="screen active">
+    <div class="selectLayout">
+
+      <!-- Left: list of songs -->
+      <div class="songList" id="songList">
+        <h2>Elegí una canción</h2>
+        <div class="noSongs" id="noSongsMsg">
+          <div class="ns-icon">🎵</div>
+          <p>Cargando canciones…</p>
+        </div>
+      </div>
+
+      <!-- Right: detail + preview -->
+      <div class="songDetail" id="songDetail">
+        <div class="detailCard" id="detailCard">
+          <div style="text-align:center; padding: 40px; color: var(--muted);">
+            <div style="font-size:36px; margin-bottom:12px;">🎮</div>
+            <p style="font-size:12px;">Seleccioná una canción para ver sus detalles</p>
+          </div>
+        </div>
+
+        <!-- Preview audio indicator -->
+        <div id="previewBadge" style="display:none; font-size:11px; color:var(--acc); text-align:center; letter-spacing:0.06em;">
+          ♪ Pre-escuchando…
+        </div>
+
+        <!-- Difficulty selector -->
+        <div class="detailCard" id="diffCard" style="display:none;">
+          <div class="hlabel" style="margin-bottom:8px;">Dificultad</div>
+          <div class="diffRow">
+            <button class="diffBtn" data-diff="easy">Easy</button>
+            <button class="diffBtn active-normal" data-diff="normal">Normal</button>
+            <button class="diffBtn" data-diff="hard">Hard</button>
+          </div>
+        </div>
+
+        <!-- Start button -->
+        <button class="startBig" id="startBigBtn" disabled>
+          ▶ &nbsp;JUGAR
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       SCREEN: COUNTDOWN
+  ══════════════════════════════════════ -->
+  <div id="screenCountdown" class="screen">
+    <div id="countNum" class="countdownNumber">3</div>
+    <div class="countdownSong" id="countSongName"></div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       SCREEN: PLAYING
+  ══════════════════════════════════════ -->
+  <div id="screenPlay" class="screen">
+    <!-- HUD -->
+    <section class="hud">
+      <div class="hcard" id="scoreCard">
+        <div class="hlabel">Score</div>
+        <div class="hval" id="scoreVal">0</div>
+      </div>
+      <div class="hcard" id="comboCard">
+        <div class="hlabel">Combo</div>
+        <div class="hval" id="comboVal">0</div>
+      </div>
+      <div class="hcard">
+        <div class="hlabel">Pitch → Target</div>
+        <div class="hval" id="playerVal" style="font-size:14px;">-- Hz</div>
+        <div class="hsub" id="targetVal">Target: --</div>
+      </div>
+      <div class="hcard">
+        <div class="hlabel">Judgement</div>
+        <div class="hval" id="judgeVal">--</div>
+        <div class="hsub" id="judgeMetaVal">×1.00 · 0 pts</div>
+      </div>
+    </section>
+
+    <!-- Pitch bar -->
+    <div id="pitchBar"><div id="pitchMarker"></div></div>
+
+    <!-- Stop button -->
+    <button class="btn danger icon" id="stopPlayBtn" title="Detener (3)" style="position:fixed;top:58px;right:14px;z-index:90;">■</button>
+
+    <!-- Progress bar -->
+    <div id="progressBar"><div id="progressFill"></div></div>
+
+    <!-- Highway canvas -->
+    <div class="gameArea">
+      <canvas id="highway"></canvas>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       SCREEN: RESULTS
+  ══════════════════════════════════════ -->
+  <div id="screenResults" class="screen">
+    <div class="resultsWrap">
+      <div class="rankBig" id="rankBig">S</div>
+      <div class="resultsSongName" id="resultsSong"></div>
+      <div class="resultsScore" id="resultsScore">0</div>
+      <div class="resultsGrid">
+        <div class="rCell rp"><div class="rc-label">Perfect</div><div class="rc-val" id="rPerfect">0</div></div>
+        <div class="rCell rg"><div class="rc-label">Good</div><div class="rc-val" id="rGood">0</div></div>
+        <div class="rCell ro"><div class="rc-label">Ok</div><div class="rc-val" id="rOk">0</div></div>
+        <div class="rCell rm"><div class="rc-label">Miss</div><div class="rc-val" id="rMiss">0</div></div>
+      </div>
+      <div class="resultsAccRow">
+        Accuracy <strong id="rAccuracy">--%</strong>
+        &nbsp;·&nbsp; Max Combo <strong id="rMaxCombo">0</strong>
+      </div>
+      <div class="resultsActions">
+        <button class="btn big primary" id="retryBtn">↺ &nbsp;Retry</button>
+        <button class="btn big" id="backSelectBtn">☰ &nbsp;Canciones</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       SETTINGS PANEL (floating)
+  ══════════════════════════════════════ -->
+  <aside id="settingsPanel" class="settingsPanel hidden">
+    <h4>Tolerancias</h4>
+    <label>Timing Perfect ms <span id="timingPerfectMsOut" class="out"></span>
+      <input id="timingPerfectMs" type="range" min="20" max="180" step="1">
+    </label>
+    <label>Timing Good ms <span id="timingGoodMsOut" class="out"></span>
+      <input id="timingGoodMs" type="range" min="40" max="300" step="1">
+    </label>
+    <label>Timing Ok ms <span id="timingOkMsOut" class="out"></span>
+      <input id="timingOkMs" type="range" min="80" max="500" step="1">
+    </label>
+    <label>Pitch Perfect cents <span id="pitchPerfectCentsOut" class="out"></span>
+      <input id="pitchPerfectCents" type="range" min="5" max="80" step="1">
+    </label>
+    <label>Pitch Good cents <span id="pitchGoodCentsOut" class="out"></span>
+      <input id="pitchGoodCents" type="range" min="10" max="160" step="1">
+    </label>
+    <label>Pitch Ok cents <span id="pitchOkCentsOut" class="out"></span>
+      <input id="pitchOkCents" type="range" min="20" max="300" step="1">
+    </label>
+    <label>LookAhead sec <span id="scrollLookAheadSecOut" class="out"></span>
+      <input id="scrollLookAheadSec" type="range" min="1.4" max="8.0" step="0.1">
+    </label>
+    <label>Volumen guía MIDI <span id="guideVolumeOut" class="out"></span>
+      <input id="guideVolume" type="range" min="0" max="1" step="0.01">
+    </label>
+    <label>Combo step % <span id="comboStepPercentOut" class="out"></span>
+      <input id="comboStepPercent" type="range" min="0" max="0.5" step="0.01">
+    </label>
+    <label>Combo bonus max % <span id="comboMaxPercentOut" class="out"></span>
+      <input id="comboMaxPercent" type="range" min="0" max="4" step="0.05">
+    </label>
+    <p class="hint" style="margin-top:8px;">Atajos: <strong>1</strong> ayuda · <strong>2</strong> ajustes · <strong>3</strong> stop</p>
+  </aside>
+
+  <!-- Help modal -->
+  <div id="helpModal" class="modal hidden">
+    <div class="modalCard">
+      <h3>Therescreen Game</h3>
+      <p>Juego de ritmo controlado con la tapa de tu Mac.</p>
+      <ul>
+        <li>Incliná la tapa para controlar el pitch (frec. en Hz).</li>
+        <li>Las notas del MIDI avanzan hacia la línea de hit dorada.</li>
+        <li>Igualá la frecuencia en el momento exacto → Perfect/Good/Ok.</li>
+        <li>Encadenás notas sin Miss → Combo → multiplica el puntaje.</li>
+        <li>La guía MIDI suena en el navegador; el theremin real suena desde el backend.</li>
+      </ul>
+      <br>
+      <button id="closeHelpBtn" class="btn">Cerrar</button>
+    </div>
+  </div>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>

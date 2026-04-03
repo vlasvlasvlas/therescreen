@@ -7,6 +7,10 @@ therescreen.log
 therescreen_config.json
 .therescreen.pid
 .therescreen.port
+therescreen_game.log
+therescreen_game_settings.json
+.therescreen-game.pid
+.therescreen-game.port
 
 # macOS
 .DS_Store

@@ -4,7 +4,27 @@ Therescreen es un instrumento tipo theremin para Mac que usa la apertura/cierre 
 
 Base tecnica: https://github.com/pirate/mac-hardware-toys
 
-## Que hace
+## Modos Disponibles
+
+1. `Normal (Theremin live)`: instrumento continuo con tapa + mousepad + control de brillo/colores.
+2. `Game (Rhythm)`: juego de ritmo con MIDIs, pre-escucha y scoring por afinacion/timing.
+
+Arranque rapido con launcher unificado:
+
+```bash
+./therescreen-mode.sh menu
+./therescreen-mode.sh theremin --sudo
+./therescreen-mode.sh jugar --sudo
+```
+
+Detalle de cada modo:
+
+- Ver `Detalle Modo Normal (Theremin)` en este README.
+- Ver `Detalle Modo Game (Rhythm)` en este README.
+
+## Detalle Modo Normal (Theremin)
+
+### Que hace
 
 - Pitch continuo con `lid-angle`.
 - Sonido estilo theremin (mono, glide, vibrato, filtro, delay, reverb).
@@ -38,6 +58,8 @@ Notas:
 - `ui/styles.css`: estilos.
 - `synth_presets.yaml`: presets de sintetizador.
 - `therescreen.sh`: wrapper CLI amigable (`run/start/stop/status/restart`).
+- `therescreen-game.sh`: wrapper del modo juego.
+- `therescreen-mode.sh`: launcher unificado para elegir modo (`normal` o `game`).
 - `theremin_lid.py`: prototipo anterior.
 
 ## Ejecutar
@@ -46,6 +68,17 @@ Notas:
 
 ```bash
 ./therescreen.sh run --sudo
+```
+
+Launcher unificado (elige modo):
+
+```bash
+./therescreen-mode.sh menu
+./therescreen-mode.sh theremin --sudo
+./therescreen-mode.sh jugar --sudo
+./therescreen-mode.sh dejar-juego --sudo
+./therescreen-mode.sh estado
+./therescreen-mode.sh cerrar
 ```
 
 Tambien podes usar:
@@ -238,7 +271,7 @@ Si la corriste en primer plano:
 
 - `Ctrl+C`
 
-Si la corriste en background con script:
+Si la dejaste corriendo con script:
 
 ```bash
 ./therescreen.sh stop
@@ -284,3 +317,113 @@ Tambien podes detener instancia previa:
 
 - Repo de este proyecto: https://github.com/vlasvlasvlas/therescreen
 - Base tecnica de sensores: https://github.com/pirate/mac-hardware-toys
+
+## Detalle Modo Game (Rhythm)
+
+Se agrego un ejecutable separado para no tocar el flujo normal:
+
+- `therescreen_game.py`
+- `therescreen-game.sh`
+- UI dedicada en `ui_game/`
+- Estado de tareas del modo juego: `GAME_MODE_TASKS.md`
+
+Levantar modo juego:
+
+```bash
+./therescreen-game.sh run --sudo
+# o con launcher unificado:
+./therescreen-mode.sh jugar --sudo
+```
+
+o para dejarlo corriendo:
+
+```bash
+./therescreen-game.sh start --sudo
+./therescreen-game.sh status
+./therescreen-game.sh stop
+```
+
+URL por defecto:
+
+```text
+http://127.0.0.1:8770
+```
+
+Carpeta de canciones MIDI:
+
+- `ui_game/midis/` (`.mid` o `.midi`)
+- Catalogo opcional de metadata manual: `ui_game/midis/catalog.json`
+- Fuente recomendada para bajar MIDIs retro:
+  https://www.vgmusic.com/music/computer/commodore/commodore/
+- MIDIs actualmente cargados en el repo:
+  - `bubble.mid`
+  - `greenberet.mid`
+  - `pitfall2.mid`
+  - `sh-old-bgm.mid` (Space Harrier)
+  - `ninja1.mid` (The Last Ninja)
+  - `lastwave.mid` (OutRun)
+  - `pacland.mid`
+  - `bombjack.mid`
+
+Compatibilidad y transformacion MIDI (modo juego):
+
+- El parser del juego intenta elegir una pista melodica y la vuelve monofonica para puntuar.
+- Ademas, cada MIDI puede tener transformaciones en `catalog.json` sin editar el archivo `.mid`:
+  - `trimStartSec`: recorta silencio/intro al inicio (en segundos).
+  - `transposeSemitones`: transpone todo el tema (por ejemplo `12` = +1 octava).
+- Estas transformaciones se aplican en preview y en gameplay (rango, notas y scoring).
+- Ejemplo actual: `sh-old-bgm.mid` usa `transposeSemitones: 12` y `trimStartSec: 6.5`.
+- Recomendado: mantener tempo estable y una pista lead clara para que el hit timing sea predecible.
+
+Modo de juego:
+
+- Selector de canciones con metadata previa (duracion, cantidad de notas, rango) y pre-escucha corta al elegir tema.
+- Visual tipo piano-roll: notas cayendo hacia la zona de hit + teclado en pantalla.
+- Por defecto no modifica brillo de pantalla/teclado de hardware.
+- Se puntua por timing + afinacion (cents) con niveles `Perfect`, `Good`, `Ok`, `Miss`.
+- Dificultad configurable (`Easy`, `Normal`, `Hard`, `Custom`):
+  - `Easy`: reproduce mas lento (BPM efectivo menor) y tolerancias mas amplias.
+  - `Hard`: reproduce mas rapido y tolerancias mas exigentes.
+- Multiplicador de combo configurable (step por nota + cap maximo).
+- Tolerancias configurables desde panel.
+- Sonido: guia MIDI en navegador + theremin real controlado por tapa en paralelo.
+
+Si queres activar brillo tambien en modo juego (opcional):
+
+```bash
+./therescreen-mode.sh jugar --sudo --enable-brightness-mapping
+```
+
+Metadata manual por MIDI (`catalog.json`):
+
+- Si existe `ui_game/midis/catalog.json`, el backend mezcla esa metadata con la detectada automaticamente.
+- El catalogo se vuelve a cargar cuando cambia el archivo.
+- Si un MIDI elige mal la voz (por ejemplo toma coro/acompanamiento), podes forzar:
+  - `melodyChannel`: canal MIDI preferido (acepta `1..16` o `0..15`).
+  - `melodyTrackIndex`: indice de track MIDI (base 0).
+- Ejemplo real: `pitfall2.mid` usa `melodyTrackIndex: 1` y `melodyChannel: 1` para quedarse con la melodia principal.
+- Formato esperado:
+
+```json
+{
+  "version": 1,
+  "midis": [
+    {
+      "file": "bubble.mid",
+      "displayName": "Bubble Bobble - Theme",
+      "game": "Bubble Bobble",
+      "platform": "Commodore 64",
+      "year": 1986,
+      "composer": "Community MIDI",
+      "difficultyHint": "normal",
+      "bpm": 132,
+      "trimStartSec": 0.0,
+      "transposeSemitones": 0,
+      "melodyChannel": 1,
+      "melodyTrackIndex": 1,
+      "tags": ["c64", "arcade", "retro"],
+      "source": "https://www.vgmusic.com/music/computer/commodore/commodore/"
+    }
+  ]
+}
+```

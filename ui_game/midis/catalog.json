@@ -1,0 +1,112 @@
+{
+  "version": 1,
+  "midis": [
+    {
+      "file": "bubble.mid",
+      "displayName": "Bubble Bobble - Theme",
+      "game": "Bubble Bobble",
+      "platform": "Commodore 64",
+      "year": 1986,
+      "composer": "Community MIDI",
+      "difficultyHint": "normal",
+      "bpm": 132,
+      "trimStartSec": 0.0,
+      "tags": ["c64", "arcade", "retro"],
+      "source": "https://www.vgmusic.com/music/computer/commodore/commodore/"
+    },
+    {
+      "file": "greenberet.mid",
+      "displayName": "Green Beret - Theme",
+      "game": "Green Beret",
+      "platform": "Commodore 64",
+      "year": 1986,
+      "composer": "Community MIDI",
+      "difficultyHint": "hard",
+      "bpm": 146,
+      "trimStartSec": 3.63,
+      "tags": ["c64", "konami", "retro"],
+      "source": "https://www.vgmusic.com/music/computer/commodore/commodore/"
+    },
+    {
+      "file": "pitfall2.mid",
+      "displayName": "Pitfall II - Main Theme",
+      "game": "Pitfall II: Lost Caverns",
+      "platform": "Commodore 64",
+      "year": 1984,
+      "composer": "Community MIDI",
+      "difficultyHint": "normal",
+      "bpm": 124,
+      "trimStartSec": 1.6,
+      "melodyTrackIndex": 1,
+      "melodyChannel": 1,
+      "tags": ["c64", "activision", "retro"],
+      "source": "https://www.vgmusic.com/music/computer/commodore/commodore/"
+    },
+    {
+      "file": "sh-old-bgm.mid",
+      "displayName": "Space Harrier - Old BGM",
+      "game": "Space Harrier",
+      "platform": "Commodore 64",
+      "year": 1985,
+      "composer": "Community MIDI",
+      "difficultyHint": "hard",
+      "bpm": 138,
+      "transposeSemitones": 12,
+      "trimStartSec": 6.5,
+      "tags": ["c64", "sega", "arcade", "retro"],
+      "source": "https://www.vgmusic.com/music/computer/commodore/commodore/"
+    },
+    {
+      "file": "ninja1.mid",
+      "displayName": "The Last Ninja - Stage Theme",
+      "game": "The Last Ninja",
+      "platform": "Commodore 64",
+      "year": 1987,
+      "composer": "Community MIDI",
+      "difficultyHint": "hard",
+      "bpm": 132,
+      "trimStartSec": 122.0,
+      "tags": ["c64", "system3", "retro"],
+      "source": "https://www.vgmusic.com/music/computer/commodore/commodore/"
+    },
+    {
+      "file": "lastwave.mid",
+      "displayName": "OutRun - Last Wave",
+      "game": "OutRun",
+      "platform": "Commodore 64",
+      "year": 1986,
+      "composer": "Community MIDI",
+      "difficultyHint": "normal",
+      "bpm": 128,
+      "trimStartSec": 7.15,
+      "tags": ["c64", "sega", "retro"],
+      "source": "https://www.vgmusic.com/music/computer/commodore/commodore/"
+    },
+    {
+      "file": "pacland.mid",
+      "displayName": "Pac-Land - Theme",
+      "game": "Pac-Land",
+      "platform": "Commodore 64",
+      "year": 1984,
+      "composer": "Community MIDI",
+      "difficultyHint": "normal",
+      "bpm": 130,
+      "trimStartSec": 0.01,
+      "tags": ["c64", "namco", "retro"],
+      "source": "https://www.vgmusic.com/music/computer/commodore/commodore/"
+    },
+    {
+      "file": "bombjack.mid",
+      "displayName": "Bomb Jack - Theme",
+      "game": "Bomb Jack",
+      "platform": "Commodore 64",
+      "year": 1984,
+      "composer": "Community MIDI",
+      "difficultyHint": "hard",
+      "bpm": 146,
+      "trimStartSec": 1.04,
+      "tags": ["c64", "arcade", "retro"],
+      "source": "https://www.vgmusic.com/music/computer/commodore/commodore/"
+    }
+  ]
+}
