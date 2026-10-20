@@ -430,4 +430,4 @@ Metadata manual por MIDI (`catalog.json`):
 ```
 ## License
 
-MIT License — © 2026 [Vladimiro Bellini](https://github.com/vlasvlasvlas). Free to use and modify, attribution required.
+[CC BY-SA 4.0](LICENSE) — © Vladimiro Bellini ([vlasvlasvlas](https://github.com/vlasvlasvlas)). Ver [LICENSE](LICENSE) para los términos completos.
